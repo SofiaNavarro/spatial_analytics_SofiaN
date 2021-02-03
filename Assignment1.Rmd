@@ -1,0 +1,78 @@
+---
+title: "Assignment 1"
+author: "Sofia Navarro"
+date: "2/2/2021"
+output:
+  html_document:
+    collapsed: FALSE
+    code_folding: hide
+---
+
+## Task 1: Spatial Analytics applied to Linguistics
+
+One area to which spatial analytics could be applied in the field of linguistics is dialectology. The word ‘dialect’ typically refers to a language from a certain region, city, town or village. To linguists, dialects are fully fledged linguistic systems that develop naturally from generation to generation.
+
+Since dialects are tied to geographical areas, it can be useful to visualize the distribution of dialects, and the boundaries between them on a map. The geographical boundaries between one 'dialectal zone' and another are called isoglosses. Viewing the geographical positioning of isoglosses and particularly the areas where they bundle together, researchers can separate different regional dialects and smaller subdialects.  These linguistic divisions often coincide with political, ethnic, religious or physical boundaries such as rivers, mountains, and deserts. 
+
+When researching the geographical distribution of language varieties, it's important to pay attention to the increased geographical mobility of people.
+
+## Task 2: Data Layers
+
+There are different types of isoglosses, so the data layers would depend on which language feature you are investigating. If we wanted to look at the distribution of stød in Danish dialects we would need the following data layers:
+- municipal boundaries
+- city boundaries
+- landmark boundaries, e.g. water bodies
+- distance from cities/municipalities/regions
+The distance between dialectal regions can usually (not always) say something about how different we should expect the dialectal variation to be. E.g.the distance between Aarhus and Randers is roughly 40km, and we do see some dialectal variation between the two cities. However, the distance between Aarhus and CPH is roughly 180km (depending on which route you take). There are considerably larger dialectal differences between 'aarhusiansk' and 'københavnsk'.
+- dialect
+Of course it's also important to mark on the map which dialect is spoken in each demarkated region, so as to be able to say something about the occurence of stød in each dialect.
+
+## Task 3: Mapping
+
+Here is my rendition of an interactive map of the ruins marked by the researcher. The map includes the option of two different views: aerial and physical. This was done using the esri backgrounds. The map also offers a minimap in the bottom right corner. 
+Lastly, by clicking on each point, information concerning description, FeatureID and FeatureType of the ruin can be seen.
+Click on the "code" button to show the code used to make the map.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(leaflet)
+library(htmltools)
+library(htmlwidgets)
+library(tidyverse)
+```
+
+```{r load, warning=FALSE}
+ruins <- read.csv("RCFeature.csv")
+
+esri <- grep("^Esri", providers, value = TRUE)
+
+leaflet() %>% 
+  addProviderTiles("Esri.WorldPhysical", group = "Physical") %>% 
+  addProviderTiles("Esri.WorldImagery", group = "Aerial") %>%
+  addMarkers(lng = ruins$Longitude, lat = ruins$Latitude,
+             popup = paste(ruins$Description, "<br>", ruins$FeatureID, "<br>", ruins$FeatureType)) %>% 
+  addLayersControl(
+  baseGroups = c("Aerial", "Physical"),
+  options = layersControlOptions(collapsed = T)) %>% 
+addMiniMap(tiles = esri[[1]], toggleDisplay = TRUE,
+             position = "bottomright") %>%
+  addMeasure(
+    position = "bottomleft",
+    primaryLengthUnit = "meters",
+    primaryAreaUnit = "sqmeters",
+    activeColor = "#3D535D",
+    completedColor = "#7D4479") %>% 
+   htmlwidgets::onRender("
+                         function(el, x) {
+                         var myMap = this;
+                         myMap.on('baselayerchange',
+                         function (e) {
+                         myMap.minimap.changeLayer(L.tileLayer.provider(e.name));
+                         })
+                         }") %>%
+addControl("", position = "topright")
+    
+
+```
+
