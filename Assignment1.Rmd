@@ -47,15 +47,20 @@ ruins <- read.csv("RCFeature.csv")
 
 esri <- grep("^Esri", providers, value = TRUE)
 
-leaflet() %>% 
+ruins$Longitude
+
+leaflet() %>%
   addProviderTiles("Esri.WorldPhysical", group = "Physical") %>% 
   addProviderTiles("Esri.WorldImagery", group = "Aerial") %>%
-  addMarkers(lng = ruins$Longitude, lat = ruins$Latitude,
-             popup = paste(ruins$Description, "<br>", ruins$FeatureID, "<br>", ruins$FeatureType)) %>% 
+  setView(lng=150.2519993, lat =-33.4057078, zoom = 12) %>% 
+  addCircleMarkers(clusterOptions = markerClusterOptions(),
+                   lng = ruins$Longitude, 
+                   lat = ruins$Latitude,
+                   popup = paste(ruins$Description, "<br>", ruins$FeatureID, "<br>", ruins$FeatureType)) %>% 
   addLayersControl(
   baseGroups = c("Aerial", "Physical"),
   options = layersControlOptions(collapsed = T)) %>% 
-addMiniMap(tiles = esri[[1]], toggleDisplay = TRUE,
+addMiniMap(tiles = "OpenTopoMap", toggleDisplay = TRUE,
              position = "bottomright") %>%
   addMeasure(
     position = "bottomleft",
@@ -70,9 +75,7 @@ addMiniMap(tiles = esri[[1]], toggleDisplay = TRUE,
                          function (e) {
                          myMap.minimap.changeLayer(L.tileLayer.provider(e.name));
                          })
-                         }") %>%
-addControl("", position = "topright")
+                         }")
     
-
 ```
 

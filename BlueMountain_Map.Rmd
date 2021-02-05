@@ -1,0 +1,69 @@
+---
+title: "Map of Blue Mountain ruins"
+author: "Sofia Navarro"
+date: "2/3/2021"
+output: 
+  html_document:
+    collapsed: FALSE
+    code_folding: hide
+---
+
+Here is my rendition of an interactive map of the ruins marked by the researcher. The map includes the option of two different views: aerial and physical. This was done using the esri backgrounds. The map also offers a minimap in the bottom right corner. 
+Lastly, by clicking on each point, information concerning description, FeatureID and FeatureType of the ruin can be seen.
+Click on the "code" button to show the code used to make the map.
+
+
+```{r setup, include=FALSE,}
+knitr::opts_chunk$set(echo = TRUE)
+library(leaflet)
+library(htmltools)
+library(htmlwidgets)
+library(tidyverse)
+```
+
+```{r load, warning=FALSE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(leaflet)
+library(htmltools)
+library(htmlwidgets)
+library(tidyverse)
+```
+
+```{r load, warning=FALSE}
+ruins <- read.csv("RCFeature.csv")
+
+esri <- grep("^Esri", providers, value = TRUE)
+
+ruins$Longitude
+
+leaflet() %>%
+  addProviderTiles("Esri.WorldPhysical", group = "Physical") %>% 
+  addProviderTiles("Esri.WorldImagery", group = "Aerial") %>%
+  setView(lng=150.2519993, lat =-33.4057078, zoom = 12) %>% 
+  addCircleMarkers(clusterOptions = markerClusterOptions(),
+                   lng = ruins$Longitude, 
+                   lat = ruins$Latitude,
+                   popup = paste(ruins$Description, "<br>", ruins$FeatureID, "<br>", ruins$FeatureType)) %>% 
+  addLayersControl(
+  baseGroups = c("Aerial", "Physical"),
+  options = layersControlOptions(collapsed = T)) %>% 
+addMiniMap(tiles = "OpenTopoMap", toggleDisplay = TRUE,
+             position = "bottomright") %>%
+  addMeasure(
+    position = "bottomleft",
+    primaryLengthUnit = "meters",
+    primaryAreaUnit = "sqmeters",
+    activeColor = "#3D535D",
+    completedColor = "#7D4479") %>% 
+   htmlwidgets::onRender("
+                         function(el, x) {
+                         var myMap = this;
+                         myMap.on('baselayerchange',
+                         function (e) {
+                         myMap.minimap.changeLayer(L.tileLayer.provider(e.name));
+                         })
+                         }")
+    
+```
+```
