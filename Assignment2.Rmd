@@ -1,0 +1,169 @@
+---
+title: "Projection and maps"
+author: "Sofia Navarro"
+date: "2/14/2021"
+output:
+  html_document:
+    collapsed: FALSE
+    code_folding: hide
+---
+
+## Exercise goals
+
+- Modify the provided code to improve the resulting map
+- Understand the provided datasets
+- Learn how to reproject spatial data
+- Limit your data into an area of interest
+- Create a new map
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#install.packages("spDataLarge", repos = "https://nowosad.github.io/drat/", type = "source")
+
+library(sf)
+library(raster)
+library(tmap)
+library(spData)
+library(spDataLarge)
+```
+
+## Part 1
+
+Exercise I
+We will use two data sets: `nz_elev` and `nz`. They are contained by the libraries
+The first one is an elevation raster object for the New Zealand area, and the second one is an sf object with polygons representing the 16 regions of New Zealand.
+
+1. Change the map title from "My map" to "New Zealand".
+2. Update the map credits with your own name and today's date.
+3. Change the color palette to "-RdYlGn". 
+(You can also try other palettes from http://colorbrewer2.org/)
+4. Put the north arrow in the top right corner of the map.
+5. Improve the legend title by adding the used units (m asl).
+6. Increase the number of breaks in the scale bar.
+7. Change the borders' color of the New Zealand's regions to black. 
+Decrease the line width.
+8. Change the background color to any color of your choice.
+
+## Solution to part I
+
+I basically modified the provided code to comply with the exercise requirements.
+
+```{r, exercise I, echo=TRUE}
+
+tm_shape(nz_elev)  +
+  tm_raster(title = "elev m/asl",
+            style = "cont",
+            palette = "-RdYlGn") +
+  tm_shape(nz) +
+  tm_borders(col = "black",
+             lwd = 3) +
+  tm_scale_bar(breaks = c(0, 50, 100, 150, 200),
+               text.size = 3) +
+  tm_compass(position = c("RIGHT", "top"),
+             type = "rose",
+             size = 2) +
+  tm_credits(text = "S. Navarro, 2021") +
+  tm_layout(main.title = "New Zealanad",
+            bg.color = "white",
+            inner.margins = c(0, 0, 0, 0))
+```
+
+9. Read two new datasets, `srtm` and `zion`.
+
+Below I modified the code to make a map of the two new datasets.
+
+```{r zion plot, echo=TRUE, warning=FALSE}
+
+srtm = raster(system.file("raster/srtm.tif", package = "spDataLarge"))
+zion = read_sf(system.file("vector/zion.gpkg", package = "spDataLarge"))
+
+tm_shape(srtm)  +
+  tm_raster(title = "Zion National Park", 
+            style = "cont",
+            palette = "-RdYlGn") +
+  tm_shape(zion) +
+  tm_borders(col = "red", 
+             lwd = 3) +
+  tm_scale_bar(breaks = c(0, 2, 4, 6, 8),
+               position = "right", "BOTTOM") +
+  tm_compass(position = c("RIGHT", "top"),
+             type = "rose", 
+             size = 2) +
+  tm_credits(text = "S. Navarro, 2021") +
+  tm_layout(main.title = "Zion National Park",
+            legend.position = c("LEFT","TOP"),
+            bg.color = "white",
+            inner.margins = c(0, 0, 0, 0))
+
+```
+
+
+# Part II (1)
+
+1. Display the `zion` object and view its structure.
+What can you say about the content of this file?
+What type of data does it store? 
+What is the coordinate system used?
+How many attributes does it contain?
+What is its geometry?
+
+## Solution to 1.
+
+```{r, echo=TRUE}
+# View structure of zion
+str(zion)
+zion
+```
+
+The file zion is a tibble dataframe, which stores geographic data on the Zion National Park. The geometry is polygon, and since it only has one feature we can gather that it represents one large object in an XY coordinate systems. All in all it has 12 attributes. Some attributes consist of metadata about the map, e.g. who made it ("Lands"), what it is a map of (Zion National Park) and the date it was made (2017-06-22). This is just some of the info we can gather from it.
+
+
+2. Display the `srtm` object and view its structure.
+What can you say about the content of this file? 
+What type of data does it store?
+What is the coordinate system used?
+How many attributes does it contain?
+How many dimensions does it have?
+What is the data resolution?
+
+```{r, echo=TRUE}
+# View structure of srtm.
+str(srtm)
+srtm
+```
+
+srtm has a more complex structure than zion. It is a raster consisting of 12 layers or 12 attributes. Each layer provides different information e.g. extent gives information on the dimensions of the map with max and min xy coordinates. We can also see that the raster consists of 465 columns, 457 rows and 212505 cells (these are the dimensions). Its resolution is 0.0008333333, 0.0008333333  (x, y).
+
+# Part II (2)
+
+1. Reproject the `srtm` dataset into the coordinate reference system used in the `zion` object.
+Create a new object `srtm2`
+Vizualize the results using the `plot()` function.
+
+```{r, echo=TRUE, warning=FALSE}
+# Create a copy of the srtm object called srtm2
+srtm2 <- srtm
+
+# Project the srtm dataset onto the zion object,
+# by using the zion crs
+srtm2 <- projectRaster(srtm2, crs = st_crs(zion)$proj4string)
+
+
+plot(srtm2)
+plot(zion, add = TRUE)
+```
+
+2. Reproject the `zion` dataset into the coordinate reference system used in the `srtm` object.
+Create a new object `zion2`
+Vizualize the results using the `plot()` function.
+
+```{r, echo=TRUE, warning=FALSE}
+zion2 <- zion
+
+zion2 <- st_transform(zion, crs = crs(srtm, asText = TRUE))
+
+plot(srtm)
+plot(zion2, add = TRUE)
+
+```
