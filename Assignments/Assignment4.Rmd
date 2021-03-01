@@ -1,10 +1,11 @@
 ---
 title: "12 - Compute Tree Canopy"
 author: "Sofia Navarro"
-date: "07/01/2021 updated `r format(Sys.time(), '%B %d, %Y')`" 
+date: "28/02/2021" 
 output:
-  rmdformats::readthedown:
-    highlight: kate
+  html_document:
+    collapsed: FALSE
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -27,17 +28,8 @@ In order to compute tree density by neighborhood you need two things. You will n
 
 You will produce counts of all trees by neighborhood in NYC and create a single data frame with a column for total trees. The result should be a data frame with **no geometry**.
 
-## Instructions
 
-* Load `sf`, `raster`, and `dplyr` in your workspace.
-* Load `trees`, `neighborhoods`, `canopy`, and `manhattan` objects from Week 02 data folder
-* Use the `count()` function from `dplyr` on the `trees` object to compute total trees by neighborhood. The neighborhood variable is `hood`. Call the new object `tree_counts`.
-* Use `head()` to take a quick look at `tree_counts` and see if the geometry variable still exists.
-* Remove the geometry from your `tree_counts` data frame.
-* The default for the `count()` function is to name the count field n. Use the `rename()` function from dplyr to change the column called `n` to `tree_cnt`.
-* Use `hist()` to create a quick histogram of the tree counts.
-
-```{r count-trees, eval=FALSE}
+```{r count-trees, eval=FALSE, echo=TRUE}
 # Load data and libraries
 library(sf)
 library(raster)
@@ -79,15 +71,8 @@ Great, you've completed the first step toward computing tree densities. You now 
 # Task 2: Compute tree density by neighborhood (II)
 We have the tree counts (from the previous exercise). In this exercise you will compute neighborhood areas, add them to the neighborhood `sf` object and then you'll join in the non-spatial tree counts data frame from the previous exercise.
 
-## Instructions
 
-* Compute the areas of the neighborhoods with `st_area()` and wrap them in the `unclass()` function to remove the units. Save this object as `areas`.
-* Use `mutate()` to add the areas to your neighborhoods object. Call the new variable `area`.
-* `left_join()` the `neighborhoods` object (which should now have areas) and the `tree_counts` object that you calculated in the last exercise.
-* Use `mutate()` with the given `ifelse()` code to replace `NA`s with 0.
-* Create a new column in `neighborhoods` called `tree_density` which is `tree_cnt/area`. 
-
-```{r tree-density, eval=FALSE}
+```{r tree-density, eval=FALSE, echo=T}
 # Compute areas and unclass
 areas <- unclass(st_area(neighborhoods))
 
@@ -116,15 +101,9 @@ You're part way there. You have now computed the tree density variable using, in
 # Task 3: Compute average tree canopy by neighborhood
 In the previous exercises you computed tree density by neighborhood using tree counts. In this exercise you will compute average tree canopy by neighborhood as a percentage so that we can compare if the results are similar.
 
-## Instructions
 
-* Use `head()` to confirm that your `neighborhoods` object has the density results from the previous exercises.
-* Transform the CRS of the `neighborhoods` object to match the `canopy` object (load the latter if needed).
-* Convert the `neighborhoods` object to an `sp` object for use with the `raster` package.
-* Compute the mean of `canopy` values by neighborhood using `raster::extract()` with the argument fun = mean (this might take a minute).
-* Use `mutate`() to add a new column `avg_canopy` to neighborhoods, which is equal to `canopy_neighborhoods`.
 
-```{r tree-canopy, eval=FALSE}
+```{r tree-canopy, eval=FALSE, echo=TRUE}
 # Confirm that you have the neighborhood density results
 head(neighborhoods_counts)
 
@@ -146,15 +125,8 @@ Excellent! Note that you transformed the neighborhoods object's CRS. This is act
 # Task 4: Create plots using ggplot2
 As an initial review of the data you created you will compute correlations and create histograms and a scatter plot using `ggplot2`.
 
-## Instructions
 
-* Load the `ggplot2` package.
-* Create a histogram of total tree density using `ggplot()` with `geom_histogram()`. The object is `neighborhoods_avg_canopy` and the variable is `tree_density`.
-* Create a histogram of average canopy (`avg_canopy`) using `ggplot()` with `geom_histogram()`.
-* Create a scatter plot of `tree_density` on the x-axis against `avg_canopy` on the y-axis using `ggplot()` and `geom_point()`. Also add a smooth using `stat_smooth()`.
-* Compute the correlation between tree density and average canopy with `cor()` by running the given code.
-
-```{r ggplot, eval=FALSE}
+```{r ggplot, eval=FALSE, echo=TRUE}
 # Load the ggplot2 package
 library(ggplot2)
 
@@ -191,15 +163,8 @@ The `geom_sf()` function operates like any other layer in `ggplot2` where you ca
 
 `devtools::install_github("tidyverse/ggplot2")`
 
-## Instructions
 
-* Ensure that `ggplot2` is loaded in your workspace and the CRS for both objects match (transform if needed. Note that there is no EPSG code, just a proj4string, for this CRS and this is fine.)
-* Use `ggplot()` and `geom_sf()` to create a map of `tree_density` using the default colors.
-* Use `ggplot()` and `geom_sf()` to create a map of `avg_canopy` using the default colors.
-* Alter the map of `tree_density` by changing the colors with `scale_fill_gradient()`. The hex codes (a `#` followed by numbers) for shades of green have been provided.
-* Alter the map of `avg_canopy` by changing the colors with `scale_fill_gradient()`. The hex codes (a `#` followed by numbers) for shades of green have been provided.
-
-```{r map, eval=FALSE}
+```{r map, eval=FALSE, echo=TRUE}
 # Simplify name
 neighborhoods <- neighborhoods_combined
 
@@ -231,17 +196,8 @@ The `tmap` package is an excellent tool for making maps. You'll see that it simp
 
 `tmap` operates similarly to `ggplot2` in the sense that it starts with a function, in this case `tm_shape()`, to set up the map and then is followed by layers and other instructions separated with the `+`.
 
-## Instructions
 
-* Load `tmap` library in your workspace.
-* Use `tm_shape()` and `tm_polygons()` to create a map of `neighborhoods` with no color-coding.
-* Use `tm_shape()` and `tm_polygons()` to create a map of `neighborhoods` and color code by `tree_density`.
-* Create a new map by updating your neighborhoods map to include `palette = "Greens"` in `tm_polygons()`.
-* Create a similar map of the variable `avg_canopy` to include the following arguments in `tm_polygons()`:
-  + `style = "quantile"`
-  + `n = 7`.
-
-```{r tmap, eval=FALSE}
+```{r tmap, eval=FALSE, echo=T}
 # Load tmap library
 library(tmap)
 
@@ -276,10 +232,9 @@ Note: In `map2`, you will make use of the `bbox` argument to force the view exte
 
 ## Instructions 1/4
 
-* Remember to load `tmap`
 
 1. Create and view a map of the `manhattan` aerial image with `tm_shape()` and `tm_raster()`.
-```{r nice-map-1, eval=FALSE}
+```{r nice-map-1, eval=FALSE, echo=T}
 # Create a map of the manhattan aerial photo
 tm_shape(manhattan) + 
   tm_rgb()
@@ -289,28 +244,8 @@ tm_shape(manhattan) +
 
 2. Create and view a map of the `neighboorhoods` borders with `tm_shape()` and `tm_borders()`.
 
-```{r nb-borders, eval=FALSE}
+```{r nb-borders, eval=FALSE, echo=T}
 # Create a map of the neighborhood polygons
 tm_shape(neighborhoods) + 
   tm_borders(col = "black", lwd = 0.5, alpha = 0.5)
 ```
-
-
-3. Combine the `manhattan` and `neighborhoods` maps above with a `+` and save this as `map1` (the `neighborhoods` layer/map should be second).
-4. Create the second map of tree measures with `tm_shape()` and `tm_polygons()`.
-5. Combine the two maps with `tmap_arrange()`, use `asp = NA` to map height/width to match the bounding box.
-
-```{r your-code-below, echo = TRUE}
-# Your code goes below
-map1 <- tm_shape(manhattan) + 
-  tm_rgb() +
-  tm_shape(neighborhoods) + 
-  tm_borders(col = "black", lwd = 0.5, alpha = 0.5)
-
-st_bbox(neighborhoods)
-neighborhoods_box <- st_make_grid(neighborhoods, n = 1)
-
-```
-
-
-Congratulations! You've created a nice final map you can share with colleagues to show how average tree canopy is a better representation of green space than the tree density based on the Street Tree Census data from NYC.
